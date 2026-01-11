@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Weather Forecaster | Scientific Dashboard</title>
+    <meta name="description" content="Professional scientific dashboard for real-time solar weather monitoring.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="solar_forecaster.css">
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="logo-area">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            </div>
+            <nav>
+                <div class="nav-item active"></div>
+                <div class="nav-item"></div>
+                <div class="nav-item"></div>
+            </nav>
+        </aside>
+
+        <main class="dashboard">
+            <header class="top-bar">
+                <div class="header-content">
+                    <h1>SOLAR WEATHER <span class="highlight">FORECASTER</span></h1>
+                    <p class="subtitle">NOAA SWPC REAL-TIME DATA STREAM</p>
+                </div>
+                <div class="header-controls">
+                    <select id="timezone-selector" class="glass-select">
+                        <option value="local">Local Time (Auto)</option>
+                        <option value="UTC">Universal (UTC)</option>
+                        <option value="America/New_York">USA - New York (EST)</option>
+                        <option value="America/Los_Angeles">USA - Los Angeles (PST)</option>
+                        <option value="Europe/London">UK - London (GMT)</option>
+                        <option value="Asia/Kolkata">India (IST)</option>
+                        <option value="Asia/Tokyo">Japan (JST)</option>
+                        <option value="Australia/Sydney">Australia - Sydney (AEDT)</option>
+                    </select>
+                    <div class="status-indicator">
+                        <div class="indicator-dot" id="connection-status"></div>
+                        <span id="status-text">SYSTEM ONLINE</span>
+                    </div>
+                </div>
+            </header>
+
+            <section class="metrics-grid">
+                <article class="metric-card kp-card">
+                    <div class="card-header">
+                        <h3>PLANETARY K-INDEX</h3>
+                        <span class="card-icon">Gp</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="primary-value" id="kp-display">--</div>
+                        <div class="risk-badge" id="risk-badge">ANALYZING</div>
+                    </div>
+                    <div class="card-footer">
+                        Global Geomagnetic Storm Index
+                    </div>
+                </article>
+
+                <article class="metric-card">
+                    <div class="card-header">
+                        <h3>SOLAR WIND SPEED</h3>
+                        <span class="card-icon">Vsw</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="primary-value"><span id="wind-speed-display">---</span> <span
+                                class="unit">km/s</span></div>
+                    </div>
+                    <div class="mini-graph" id="sparkline-speed"></div>
+                </article>
+
+                <article class="metric-card">
+                    <div class="card-header">
+                        <h3>PROTON DENSITY</h3>
+                        <span class="card-icon">P</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="primary-value"><span id="density-display">---</span> <span class="unit">p/cm³</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="metric-card time-card">
+                    <div class="card-header">
+                        <h3>LAST UPDATE</h3>
+                        <span class="card-icon">T</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="time-value" id="last-update-time">--:-- --</div>
+                        <div class="date-value" id="last-update-date">--/--/----</div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="science-grid">
+                <div class="glass-card image-card">
+                    <div class="card-header">
+                        <h3>LIVE SOLAR CORONA (SDO/AIA 193)</h3>
+                        <div class="live-dot"></div>
+                    </div>
+                    <div class="sdo-container">
+                        <img id="sdo-image" src="" alt="Loading SDO Image...">
+                        <div class="scan-line"></div>
+                        <div class="image-overlay">
+                            <span>NASA/SDO</span>
+                            <span id="sdo-timestamp">--:--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card chart-card">
+                    <div class="card-header">
+                        <h3>SOLAR X-RAY FLUX (GOES-16)</h3>
+                        <span class="card-icon warning">FLARES</span>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="xrayChart"></canvas>
+                    </div>
+                    <div class="flare-classes">
+                        <span class="f-class c-a">A</span>
+                        <span class="f-class c-b">B</span>
+                        <span class="f-class c-c">C</span>
+                        <span class="f-class c-m">M</span>
+                        <span class="f-class c-x">X</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="charts-area">
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3>SOLAR WIND TELEMETRY (24 HOURS)</h3>
+                        <div class="chart-legend">
+                            <span class="legend-item"><span class="dot speed"></span> Speed (km/s)</span>
+                            <span class="legend-item"><span class="dot density"></span> Density (p/cm³)</span>
+                        </div>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="windChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container small">
+                    <div class="chart-header">
+                        <h3>GEOMAGNETIC ACTIVITY (Kp)</h3>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="kpChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="forecast-grid">
+                <article class="glass-card aurora-card">
+                    <div class="card-header">
+                        <h3>AURORA BOREALIS (NORTHERN HEMISPHRE)</h3>
+                        <div class="live-dot"></div>
+                    </div>
+                    <div class="aurora-container">
+                        <img id="aurora-image"
+                            src="https://services.swpc.noaa.gov/images/aurora-forecast-northern-hemisphere.jpg"
+                            alt="Aurora Forecast Map" class="aurora-img">
+                        <div class="image-overlay">
+                            <span>NOAA/SWPC OVATION</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="glass-card forecast-card">
+                    <div class="card-header">
+                        <h3>3-DAY GEOMAGNETIC FORECAST</h3>
+                        <span class="card-icon">Kp-Index</span>
+                    </div>
+                    <div class="forecast-table-wrapper">
+                        <table class="forecast-table" id="forecast-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>00-03</th>
+                                    <th>03-06</th>
+                                    <th>06-09</th>
+                                    <th>09-12</th>
+                                    <th>12-15</th>
+                                    <th>15-18</th>
+                                    <th>18-21</th>
+                                    <th>21-00</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecast-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="glass-card drap-card">
+                    <div class="card-header">
+                        <h3>GLOBAL HF RADIO BLACKOUT (D-RAP)</h3>
+                        <span class="card-icon">15 MHz</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="primary-value" style="font-size: 1.5rem;" id="radio-status">NORMAL</div>
+                        <div class="date-value" id="radio-desc">No Blackouts Detected</div>
+                    </div>
+                    <div class="aurora-container" style="height: 200px;">
+                        <img id="drap-image"
+                            src="https://services.swpc.noaa.gov/images/animations/d-rap/global/d-rap/latest.png"
+                            alt="Radio Blackout Map" class="aurora-img">
+                        <div class="image-overlay">
+                            <span>NOAA/SWPC</span>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <div id="alarm-modal" class="alarm-modal hidden">
+        <div class="alarm-content">
+            <div class="alarm-header">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    class="alarm-icon">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                    </path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <h2>CRITICAL ALERT</h2>
+            </div>
+            <div class="alarm-body">
+                <h3 id="alarm-title">EVENT DETECTED</h3>
+                <p id="alarm-message">Extreme solar activity detected. Monitor telemetry closely.</p>
+            </div>
+            <button id="alarm-dismiss" class="alarm-btn">ACKNOWLEDGE</button>
+        </div>
+    </div>
+
+    <script src="solar_forecaster.js"></script>
+</body>
+
+</html>
